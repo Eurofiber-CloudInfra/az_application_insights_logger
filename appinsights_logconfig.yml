@@ -1,0 +1,42 @@
+message_envelope:
+  tags:
+    "ai.cloud.role": "app"
+    "ai.cloud.roleInstance": "pipeline1"
+    "ai.operation.parentId": "job1234"
+    "ai.operation.id": "step123456"
+    "ai.operation.name": "step name"
+    # "ai.device.id": "bot1"
+    # "ai.device.locale": "en_US"
+    # "ai.device.type": "logbot"
+    # "ai.device.model": "pipeline bot"
+    # "ai.device.osVersion": "some other linux"
+logging_config:
+  version: 1
+  formatters:
+    simple:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    super_simple:
+      format: '%(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+    event:
+      class: opencensus.ext.azure.log_exporter.AzureEventHandler
+      formatter: super_simple
+    trace:
+      class: opencensus.ext.azure.log_exporter.AzureLogHandler
+      formatter: super_simple
+  loggers:
+    aitracelog:
+      level: DEBUG
+      handlers: [trace]
+      propagate: no
+    aieventlog:
+      level: DEBUG
+      handlers: [event]
+      propagate: no
+  root:
+    handlers: [console]
