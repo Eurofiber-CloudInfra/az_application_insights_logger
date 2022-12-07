@@ -88,23 +88,42 @@ def init_ai_logger(app_name: str, config: dict):
 def main(
     config: Path = typer.Option(
         Path("appinsights_logconfig.yml"),
+        "--config",
         "-c",
         readable=True,
         help="Configuration file path.",
     ),
     ai_logger_name: str = typer.Option(
-        ai_logger_name, "-a", help="Application Insights Logger instance name. Needs to coincide within logger config!"
+        ai_logger_name,
+        "--app",
+        "-a",
+        help="Application Insights Logger instance name. Needs to coincide within logger config!",
     ),
     level: LogLevel = typer.Option(
-        "info", "-l", help="Log Level for submitted message."
+        "info", "--level", "-l", help="Log Level for submitted message."
     ),
-    msg: Optional[str] = typer.Option(..., "-m", help="Log Message to submit."),
+    msg: Optional[str] = typer.Option(
+        ..., "--message", "-m", help="Log Message to submit."
+    ),
     tag: Optional[List[str]] = typer.Option(
-        [f"ai.cloud.role={ai_logger_name}"],
+        None,
+        "--tag",
         "-t",
-        help="Override tags, check dist config for available values.",
+        help='Custom tag, multiple invocations allowed. Check dist config for available values. [format: "key=value"]',
     ),
-    verbosity: int = typer.Option(0, "-v", count=True, show_default=False, help="Verbosity level, increased by multiple use."),
+    prop: Optional[List[str]] = typer.Option(
+        None,
+        "--property",
+        "-p",
+        help='Custom dimension property, multiple invocations allowed. [format: "key=value"]',
+    ),
+    verbosity: int = typer.Option(
+        0,
+        "-v",
+        count=True,
+        show_default=False,
+        help="Verbosity level, increased by multiple use.",
+    ),
 ):
     global int_log, app_config
     app_name = ai_logger_name
@@ -112,27 +131,41 @@ def main(
     app_config = yaml.safe_load(config.read_text())
     init_ai_logger(app_name=app_name, config=app_config.get("logging_config"))
 
-    if tag is not None:
-        tag.sort()
-        tags_override = {}
-        for label in tag:
-            tag_parts = label.split("=")
-            if len(tag_parts) == 1:
-                continue
-            tags_override.update({tag_parts[0]: tag_parts[1]})
-        int_log.debug("Updating tags with overrides in app config.")
-        msg_env = app_config.get("message_envelope", {})
-        msg_env_tags = msg_env.get("tags", {})
-        msg_env_tags.update(tags_override)
-        msg_env.update(dict(tags=msg_env_tags))
-        app_config.update(dict(message_envelope=msg_env))
-
     if verbosity > 2:
         int_log.setLevel(logging.DEBUG)
     elif verbosity > 1:
         int_log.setLevel(logging.INFO)
     elif verbosity > 0:
         int_log.setLevel(logging.WARNING)
+
+    if tag is not None:
+        int_log.debug("Processing user provided tags.")
+        tag.sort()
+        tags_override = {}
+        for label in tag:
+            tag_parts = [p for p in label.split("=") if p.strip()]
+            if len(tag_parts) == 1:
+                int_log.warning(f"Missing equal sign in tag [{label}], skipping.")
+                continue
+            tags_override.update({tag_parts[0]: tag_parts[1]})
+        if len(tags_override) > 0:
+            int_log.debug("Updating tags with overrides in app config.")
+            msg_env = app_config.get("message_envelope", {})
+            msg_env_tags = msg_env.get("tags", {})
+            msg_env_tags.update(tags_override)
+            msg_env.update(dict(tags=msg_env_tags))
+            app_config.update(dict(message_envelope=msg_env))
+
+    custom_dimensions = {}
+    if prop is not None:
+        int_log.debug("Processing user provided properties.")
+        prop.sort()
+        for label in prop:
+            property_parts = [p for p in label.split("=") if p.strip()]
+            if len(property_parts) == 1:
+                int_log.warning(f"Missing equal sign in property [{label}], skipping.")
+                continue
+            custom_dimensions.update({property_parts[0]: property_parts[1]})
 
     int_log.info("Logger message processing")
     if msg is None:
@@ -147,7 +180,8 @@ def main(
     elif level is LogLevel.error:
         ai_log = ai_logger.error
 
-    ai_log(msg)
+    custom_payload = dict(custom_dimensions=custom_dimensions)
+    ai_log(msg, extra=custom_payload)
 
     int_log.info("Logger done")
 
