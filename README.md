@@ -61,18 +61,20 @@ logging_config:
 Usage: appinsights_logger.py [OPTIONS]
 
 Options:
-  -c PATH                         Configuration file path.  [default:
+  -c, --config PATH               Configuration file path.  [default:
                                   appinsights_logconfig.yml]
-  -a TEXT                         Application Insights Logger instance name.
+  -a, --app TEXT                  Application Insights Logger instance name.
                                   Needs to coincide within logger config!
-                                  [default: aipusher]
-  -l [critical|error|warning|info|debug]
+                                  [default: aitracelog]
+  -l, --level [critical|error|warning|info|debug]
                                   Log Level for submitted message.  [default:
                                   info]
-  -m TEXT                         Log Message to submit.  [required]
-  -t TEXT                         Override tags, check dist config for
-                                  available values.  [default:
-                                  ai.cloud.role=aipusher]
+  -m, --message TEXT              Log Message to submit.  [required]
+  -t, --tag TEXT                  Custom tag, multiple invocations allowed.
+                                  Check dist config for available values.
+                                  [format: "key:=value"]
+  -p, --property TEXT             Custom dimension property, multiple
+                                  invocations allowed. [format: "key:=value"]
   -v                              Verbosity level, increased by multiple use.
   --help                          Show this message and exit.
 ```

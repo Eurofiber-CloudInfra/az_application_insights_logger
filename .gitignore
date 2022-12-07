@@ -136,3 +136,7 @@ dmypy.json
 *.dist/
 *.onefile-build/
 *.bin
+
+# Packaging
+*.zip
+
