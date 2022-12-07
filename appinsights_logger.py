@@ -109,13 +109,13 @@ def main(
         None,
         "--tag",
         "-t",
-        help='Custom tag, multiple invocations allowed. Check dist config for available values. [format: "key=value"]',
+        help='Custom tag, multiple invocations allowed. Check dist config for available values. [format: "key:=value"]',
     ),
     prop: Optional[List[str]] = typer.Option(
         None,
         "--property",
         "-p",
-        help='Custom dimension property, multiple invocations allowed. [format: "key=value"]',
+        help='Custom dimension property, multiple invocations allowed. [format: "key:=value"]',
     ),
     verbosity: int = typer.Option(
         0,
@@ -143,10 +143,12 @@ def main(
         tag.sort()
         tags_override = {}
         for label in tag:
-            tag_parts = [p for p in label.split("=") if p.strip()]
+            tag_parts = [p for p in label.split(":=") if p.strip()]
             if len(tag_parts) == 1:
                 int_log.warning(f"Missing equal sign in tag [{label}], skipping.")
                 continue
+            elif len(tag_parts) > 2:
+                raise RuntimeError(f"More than one separator found in tag [{label}]")
             tags_override.update({tag_parts[0]: tag_parts[1]})
         if len(tags_override) > 0:
             int_log.debug("Updating tags with overrides in app config.")
@@ -161,10 +163,12 @@ def main(
         int_log.debug("Processing user provided properties.")
         prop.sort()
         for label in prop:
-            property_parts = [p for p in label.split("=") if p.strip()]
+            property_parts = [p for p in label.split(":=") if p.strip()]
             if len(property_parts) == 1:
                 int_log.warning(f"Missing equal sign in property [{label}], skipping.")
                 continue
+            elif len(property_parts) > 2:
+                raise RuntimeError(f"More than one separator found in property [{label}]")
             custom_dimensions.update({property_parts[0]: property_parts[1]})
 
     int_log.info("Logger message processing")
