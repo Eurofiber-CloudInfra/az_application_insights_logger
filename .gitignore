@@ -140,3 +140,7 @@ dmypy.json
 # Packaging
 *.zip
 
+# Deployment specifics
+params/*
+*.params.json
+

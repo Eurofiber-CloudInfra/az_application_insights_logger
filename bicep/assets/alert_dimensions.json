@@ -1,0 +1,37 @@
+[
+  {
+    "name": "message",
+    "operator": "Include",
+    "values": [
+      "*"
+    ]
+  },
+  {
+    "name": "pipeline_url",
+    "operator": "Include",
+    "values": [
+      "*"
+    ]
+  },
+  {
+    "name": "pipeline_name",
+    "operator": "Include",
+    "values": [
+      "*"
+    ]
+  },
+  {
+    "name": "pipeline_build",
+    "operator": "Include",
+    "values": [
+      "*"
+    ]
+  },
+  {
+    "name": "severity_level",
+    "operator": "Include",
+    "values": [
+      "*"
+    ]
+  }
+]

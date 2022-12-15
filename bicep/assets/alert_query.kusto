@@ -1,0 +1,8 @@
+traces
+| where severityLevel >= 3
+| extend pipeline_url = tostring(customDimensions['pipeline_build_url'])
+| extend pipeline_name = cloud_RoleName
+| extend pipeline_build = cloud_RoleInstance
+| extend severity_level = severityLevel
+| project timestamp, message, pipeline_url, pipeline_name, pipeline_build, severity_level
+| order by timestamp desc

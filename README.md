@@ -93,3 +93,39 @@ Options:
   ```
   nuitka3 appinsights_logger.py --static-libpython=yes --onefile
   ```
+
+## Azure Application Insights setup
+
+- find source files for Bicep based deployment in `./bicep/deployments`
+- find used assets in `./bicep/assets` related to:
+  - Alert Rule Kusto query
+  - Alert Rule dimensions for log data extraction
+  - Logic App code definition
+
+### Deployment details
+
+- Requirements:
+  - MS Teams `Incoming Webhook` URL
+  - Azure Resource group
+  - [Optional] Log Analytics Workspace Resource ID
+
+- Resources to be deployed:
+  - [Optional] Log Analytics Workspace with minimal default settings
+  - Application Insights based on the Log Analytics Workspace
+  - Logic App processing Common Alert Schema and defined dimensions to MS Teams Message
+  - Action Group using Logic App adapter for payload submission
+  - Alert Rule with Log Search V2 based on Application Insights, using Common Alert Schema and Action Group integration
+
+### Deployment example
+
+> Parameter files need to be written out separately or fill the require parameters via CLI.
+
+- Deployment of Application Insights base
+  ```
+  az deployment group create -c -g <RG_NAME> -f bicep/deployments/01_appinsights_baseline.bicep -p params/01_appinsights_baseline.params.json
+  ```
+
+- Deployment of Teams notification resources
+  ```
+  az deployment group create -c -g <RG_NAME> -f bicep/deployments/02_appinsights_teams_notifier.bicep -p params/02_appinsights_teams_notifier.params.json
+  ```
